@@ -19,14 +19,14 @@
 //***************************** Local Constants *******************************
 
 //***************************** Local Variables *******************************
-static mqd_t mInputMessageQueue = 0;
-static mqd_t mOutputMessageQueue = 0;
-static sem_t *psPollerSemaphore = NULL;
-static sem_t *psLoggerSemaphore = NULL;
-static sem_t *psTransferSemaphore = NULL;
-static pthread_cond_t uCondition = {0};
-static pthread_mutex_t uFileMutex = {0};
-static pthread_mutex_t uConditionMutex ={0};
+static mqd_t lInputMessageQueue = 0;
+static mqd_t lOutputMessageQueue = 0;
+static sem_t *punPollerSemaphore = NULL;
+static sem_t *punLoggerSemaphore = NULL;
+static sem_t *punTransferSemaphore = NULL;
+static pthread_cond_t unCondition = {0};
+static pthread_mutex_t unFileMutex = {0};
+static pthread_mutex_t unConditionMutex ={0};
 static uint8 ucConditionReady = 0;
 
 //****************************** Local Functions ******************************
@@ -80,7 +80,7 @@ bool possixOperationInputMQueueOpen()
 {
     bool blReturn = false;
 
-    if(possixHandlerMQueueOpen(&mInputMessageQueue, 
+    if(possixHandlerMQueueOpen(&lInputMessageQueue, 
                                INPUT_MQ_NAME, 
                                O_CREAT | O_RDWR | O_NONBLOCK, 
                                MODE_FLAGS,
@@ -111,7 +111,7 @@ bool possixOperationOutputMQueueOpen()
 {
     bool blReturn = false;
 
-    if(possixHandlerMQueueOpen(&mOutputMessageQueue, 
+    if(possixHandlerMQueueOpen(&lOutputMessageQueue, 
                                OUTPUT_MQ_NAME, 
                                O_CREAT | O_RDWR | O_NONBLOCK, 
                                MODE_FLAGS,
@@ -141,7 +141,7 @@ bool possixOperationInputMQueueClose()
 {
     bool bleReturn = false;
 
-    if(possixHandlerMQueueClose(&mInputMessageQueue, INPUT_MQ_NAME) != true)
+    if(possixHandlerMQueueClose(&lInputMessageQueue, INPUT_MQ_NAME) != true)
     {
         printf("Failed to close Input MQueue %s\r\n",INPUT_MQ_NAME);
     }
@@ -165,7 +165,7 @@ bool possixOperationOutputMQueueClose()
 {
     bool bleReturn = false;
 
-    if(possixHandlerMQueueClose(&mOutputMessageQueue, OUTPUT_MQ_NAME) != true)
+    if(possixHandlerMQueueClose(&lOutputMessageQueue, OUTPUT_MQ_NAME) != true)
     {
         printf("Failed to close Output MQueue %s\r\n",OUTPUT_MQ_NAME);
     }
@@ -189,7 +189,7 @@ bool possixOperationInputMessageSend(void *pvMessage)
 {
     bool blReturn = false;
 
-    if(possixHandlerMQueueSend(&mInputMessageQueue, 
+    if(possixHandlerMQueueSend(&lInputMessageQueue, 
                                 (char*)pvMessage, 
                                 MAX_MSG_LEN, 
                                 MSG_PRIORITY) == true)
@@ -214,7 +214,7 @@ bool possixOperationOutputMessageSend(void *pvMessage)
     int8 *pcMessageString = NULL;
 
     pcMessageString = (char*)pvMessage;
-    if(possixHandlerMQueueSend(&mOutputMessageQueue, 
+    if(possixHandlerMQueueSend(&lOutputMessageQueue, 
                                pcMessageString, 
                                MAX_MSG_LEN, 
                                MSG_PRIORITY) == true)
@@ -236,7 +236,7 @@ bool possixOperationInputMessageReceive(void *pvMessage)
 {
     bool blReturn = false;
 
-    if(possixHandlerMQueueReceive(&mInputMessageQueue, 
+    if(possixHandlerMQueueReceive(&lInputMessageQueue, 
                                   (char*)pvMessage, 
                                   MAX_MSG_LEN, 
                                   NULL) == true)
@@ -259,7 +259,7 @@ bool possixOperationOutputMessageReceive(void *pvMessage)
 {
     bool blReturn = false;
 
-    if(possixHandlerMQueueReceive(&mOutputMessageQueue, 
+    if(possixHandlerMQueueReceive(&lOutputMessageQueue, 
                                   (char*)pvMessage, 
                                   MAX_MSG_LEN, 
                                   NULL) == true)
@@ -283,7 +283,7 @@ bool possixOperationFileMutexCreate()
 {
     bool blReturn = false;
 
-    if(possixHandlerMutexCreate(&uFileMutex) != true)
+    if(possixHandlerMutexCreate(&unFileMutex) != true)
     {
         printf("FileMutex creation failed \r\n");
         exit(ERROR_VALUE);
@@ -308,7 +308,7 @@ bool possixOperationConditionalMutexCreate()
 {
     bool blReturn = false;
 
-    if(possixHandlerMutexCreate(&uConditionMutex) != true)
+    if(possixHandlerMutexCreate(&unConditionMutex) != true)
     {
         printf("ConditionalMutex creation failed \r\n");
         exit(ERROR_VALUE);
@@ -333,7 +333,7 @@ bool possixOperationFileMutexDelete()
 {
     bool bleReturn = false;
 
-    if(possixHandlerMutexDelete(&uFileMutex) != true)
+    if(possixHandlerMutexDelete(&unFileMutex) != true)
     {
         printf("File Mutex deletion failed\r\n");
     }
@@ -356,7 +356,7 @@ bool possixOperationsConditionalMutexDelete()
 {
     bool bleReturn = false;
 
-    if(possixHandlerMutexDelete(&uConditionMutex) != true)
+    if(possixHandlerMutexDelete(&unConditionMutex) != true)
     {
         printf("Conditional Mutex deletion failed\r\n");
     }
@@ -379,7 +379,7 @@ bool possixOperationFileMutexLock()
 {
     bool bleReturn = false;
 
-    if(possixHandlerMutexLock(&uFileMutex) == true)
+    if(possixHandlerMutexLock(&unFileMutex) == true)
     {
         bleReturn = true;
     }
@@ -398,7 +398,7 @@ bool possixOperationFileMutexUnlock()
 {
     bool bleReturn = false;
 
-    if(possixHandlerMutexUnlock(&uFileMutex) == true)
+    if(possixHandlerMutexUnlock(&unFileMutex) == true)
     {
         bleReturn = true;
     }
@@ -417,7 +417,7 @@ bool possixOperationConditionalMutexLock()
 {
     bool bleReturn = false;
 
-    if(possixHandlerMutexLock(&uConditionMutex) == true)
+    if(possixHandlerMutexLock(&unConditionMutex) == true)
     {
         bleReturn = true;
     }
@@ -436,7 +436,7 @@ bool possixOperationConditionalMutexUnlock()
 {
     bool bleReturn = false;
 
-    if(possixHandlerMutexUnlock(&uConditionMutex) == true)
+    if(possixHandlerMutexUnlock(&unConditionMutex) == true)
     {
         bleReturn = true;
     }
@@ -459,7 +459,7 @@ bool possixOperationPollerSemaphoreOpen()
     lInitialValue = FALSE;
     #endif // _RPIBOARD
 
-    if(possixHandlerSemaphoreOpen(&psPollerSemaphore, 
+    if(possixHandlerSemaphoreOpen(&punPollerSemaphore, 
                                   POLER_SEM, 
                                   O_CREAT | O_EXCL, 
                                   MODE_FLAGS, 
@@ -488,7 +488,7 @@ bool possixOperationTransportSemaphoreOpen()
 {
     bool bleReturn = false;
 
-    if(possixHandlerSemaphoreOpen(&psTransferSemaphore, 
+    if(possixHandlerSemaphoreOpen(&punTransferSemaphore, 
                                   TRNSFR_SEM, 
                                   O_CREAT | O_EXCL, 
                                   MODE_FLAGS, 
@@ -517,7 +517,7 @@ bool possixOperationLoggerSemaphoreOpen()
 {
     bool bleReturn = false;
 
-    if(possixHandlerSemaphoreOpen(&psLoggerSemaphore, 
+    if(possixHandlerSemaphoreOpen(&punLoggerSemaphore, 
                                   LOGER_SEM, 
                                   O_CREAT | O_EXCL, 
                                   MODE_FLAGS, 
@@ -546,7 +546,7 @@ bool possixOperationPollerSemaphoreClose()
 {
     bool bleReturn = false;
 
-    if(possixHandlerSemaphoreClose(psPollerSemaphore, POLER_SEM) != true)
+    if(possixHandlerSemaphoreClose(punPollerSemaphore, POLER_SEM) != true)
     {
         printf("Failed to Close Poller Semaphore %s\r\n", POLER_SEM);
     }
@@ -568,10 +568,9 @@ bool possixOperationPollerSemaphoreClose()
 //*****************************************************************************
 bool possixOperationTransferSemaphoreClose()
 {
-
     bool bleReturn = false;
 
-    if(possixHandlerSemaphoreClose(psTransferSemaphore, TRNSFR_SEM) != true)
+    if(possixHandlerSemaphoreClose(punTransferSemaphore, TRNSFR_SEM) != true)
     {
         printf("Failed to Close Transfer Semaphore %s\r\n", TRNSFR_SEM);
     }
@@ -593,10 +592,9 @@ bool possixOperationTransferSemaphoreClose()
 //*****************************************************************************
 bool possixOperationLoggerSemaphoreClose()
 {
-
     bool bleReturn = false;
 
-    if(possixHandlerSemaphoreClose(psLoggerSemaphore, LOGER_SEM) != true)
+    if(possixHandlerSemaphoreClose(punLoggerSemaphore, LOGER_SEM) != true)
     {
         printf("Failed to Close Logger Semaphore %s\r\n", LOGER_SEM);
     }
@@ -620,7 +618,7 @@ bool possixOperationPollerSemaphoreWait()
 {
     bool bleReturn = false;
 
-    if(possixHandlerSemaphoreWait(psPollerSemaphore) == true)
+    if(possixHandlerSemaphoreWait(punPollerSemaphore) == true)
     {
         bleReturn = true;
     }
@@ -644,7 +642,7 @@ bool possixOperationTransportSemaphoreWait()
 {
     bool bleReturn = false;
 
-    if(possixHandlerSemaphoreWait(psTransferSemaphore) == true)
+    if(possixHandlerSemaphoreWait(punTransferSemaphore) == true)
     {
         bleReturn = true;
     }
@@ -667,7 +665,7 @@ bool possixOperationLoggerSemaphoreWait()
 {
     bool bleReturn = false;
 
-    if(possixHandlerSemaphoreWait(psLoggerSemaphore) == true)
+    if(possixHandlerSemaphoreWait(punLoggerSemaphore) == true)
     {
         bleReturn = true;
     }
@@ -690,7 +688,7 @@ bool possixOperationPollerSemaphorePost()
 {
     bool bleReturn = false;
 
-    if(possixHandlerSemaphorePost(psPollerSemaphore) == true)
+    if(possixHandlerSemaphorePost(punPollerSemaphore) == true)
     {
         bleReturn = true;
     }
@@ -714,7 +712,7 @@ bool possixOperationTransportSemaphorePost()
 {
     bool bleReturn = false;
 
-    if(possixHandlerSemaphorePost(psTransferSemaphore) == true)
+    if(possixHandlerSemaphorePost(punTransferSemaphore) == true)
     {
         bleReturn = true;
     }
@@ -738,7 +736,7 @@ bool possixOperationLoggerSemaphorePost()
 {
     bool bleReturn = false;
 
-    if(possixHandlerSemaphorePost(psLoggerSemaphore) == true)
+    if(possixHandlerSemaphorePost(punLoggerSemaphore) == true)
     {
         bleReturn = true;
     }
@@ -762,7 +760,7 @@ bool possixOperationConditionalVarInit()
 {
     bool blReturn = false;
 
-    if(possixHandlerConditionalVarInit(&uCondition, NULL) == true)
+    if(possixHandlerConditionalVarInit(&unCondition, NULL) == true)
     {
         blReturn = true;
     }
@@ -786,7 +784,7 @@ bool possixOperationConditionalVarDelete()
 {
     bool blReturn = false;
 
-    if(possixHandlerConditionalVarDelete(&uCondition) == true)
+    if(possixHandlerConditionalVarDelete(&unCondition) == true)
     {
         blReturn = true;
     }
@@ -810,7 +808,7 @@ bool possixOperationConditionalVarWait()
 {
     bool blReturn = false;
 
-    if(possixHandlerConditionalVarWait(&uCondition, &uConditionMutex) == true)
+    if(possixHandlerConditionalVarWait(&unCondition, &unConditionMutex) == true)
     {
         blReturn = true;
     }
@@ -834,7 +832,7 @@ bool possixOperationConditionalVarSignal()
 {
     bool blReturn = false;
 
-    if(possixHandlerConditionalVarSignal(&uCondition) == true)
+    if(possixHandlerConditionalVarSignal(&unCondition) == true)
     {
         blReturn = true;
     }
@@ -858,7 +856,7 @@ bool possixOperationConditionalVarBroadcast()
 {
     bool blReturn = false;
 
-    if(possixHandlerConditioanlVarBroadcast(&uCondition) == true)
+    if(possixHandlerConditioanlVarBroadcast(&unCondition) == true)
     {
         blReturn = true;
     }

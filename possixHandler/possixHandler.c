@@ -124,17 +124,17 @@ bool possixHandlerThreadCancel(pthread_t pulThread)
 //*************************.possixHandlerMutexCreate.**************************
 //Purpose   : Create a mutex
 //Inputs    : None
-//Outputs   : puMutex - Address of created mutex
+//Outputs   : punMutex - Address of created mutex
 //Return    : true - MUtex created, false - mutex creation failed
 //Notes     : Create a mutex and return its address
 //*****************************************************************************
-bool possixHandlerMutexCreate(pthread_mutex_t *puMutex)
+bool possixHandlerMutexCreate(pthread_mutex_t *punMutex)
 {
     bool blReturn = false;
 
-    if(puMutex != NULL)
+    if(punMutex != NULL)
     {
-        if(pthread_mutex_init(puMutex, NULL) == RETURN_OK)
+        if(pthread_mutex_init(punMutex, NULL) == RETURN_OK)
         {
             blReturn = true;
         }
@@ -150,18 +150,18 @@ bool possixHandlerMutexCreate(pthread_mutex_t *puMutex)
 
 //*************************.possixHandlerMutexDelete.**************************
 //Purpose   : Delete a mutex
-//Inputs    : puMutex - mutex handler
+//Inputs    : punMutex - mutex handler
 //Outputs   : None
 //Return    : true - Mutex deleted, false - mutex deletion failed
 //Notes     : Delete a mutex
 //*****************************************************************************
-bool possixHandlerMutexDelete(pthread_mutex_t *puMutex)
+bool possixHandlerMutexDelete(pthread_mutex_t *punMutex)
 {
     bool blReturn = false;
 
-    if(puMutex != NULL)
+    if(punMutex != NULL)
     {
-        if(pthread_mutex_destroy(puMutex) == RETURN_OK)
+        if(pthread_mutex_destroy(punMutex) == RETURN_OK)
         {
             blReturn = true;
         }
@@ -177,19 +177,19 @@ bool possixHandlerMutexDelete(pthread_mutex_t *puMutex)
 
 //**************************.possixHandlerMutexLock.***************************
 //Purpose   : Lock a mutex for a shared resource
-//Inputs    : puMutex - Address of mutex
+//Inputs    : punMutex - Address of mutex
 //Outputs   : None
 //Return    : true - Mutex locked, false - mutex lock failed
 //Notes     : Try to lock given mutex. Will wait unti mutex is locked 
 //          : or error returns
 //*****************************************************************************
-bool possixHandlerMutexLock(pthread_mutex_t *puMutex)
+bool possixHandlerMutexLock(pthread_mutex_t *punMutex)
 {
     bool blReturn = false;
 
-    if(puMutex != NULL)
+    if(punMutex != NULL)
     {
-        if(pthread_mutex_lock(puMutex) == RETURN_OK)
+        if(pthread_mutex_lock(punMutex) == RETURN_OK)
         {
             blReturn = true;
         }
@@ -209,18 +209,18 @@ bool possixHandlerMutexLock(pthread_mutex_t *puMutex)
 
 //*************************.possixHandlerMutexUnlock.**************************
 //Purpose   : unlock a mutex from a shared resource
-//Inputs    : puMutex - Address of mutex
+//Inputs    : punMutex - Address of mutex
 //Outputs   : None
 //Return    : true - Mutex unlocked, false - mutex unlock failed
 //Notes     : Try to unlock given mutex.
 //*****************************************************************************
-bool possixHandlerMutexUnlock(pthread_mutex_t *puMutex)
+bool possixHandlerMutexUnlock(pthread_mutex_t *punMutex)
 {
     bool blReturn = false;
 
-    if(puMutex != NULL)
+    if(punMutex != NULL)
     {
-        if(pthread_mutex_unlock(puMutex) == RETURN_OK)
+        if(pthread_mutex_unlock(punMutex) == RETURN_OK)
         {
             blReturn = true;
         }
@@ -244,11 +244,11 @@ bool possixHandlerMutexUnlock(pthread_mutex_t *puMutex)
 //Inputs    : lOFlags - Optmisation Flags
 //Inputs    : LModeFlags - Permission Mode flags
 //Inputs    : lInitialValue - Initial value of semaphore
-//Outputs   : puSemaphore - Address of semaphore
+//Outputs   : punSemaphore - Address of semaphore
 //Return    : true - Semaphore Opened, false - Semaphore open failed
 //Notes     : Open a semaphore and return its address
 //*****************************************************************************
-bool possixHandlerSemaphoreOpen(sem_t **puSemaphore, 
+bool possixHandlerSemaphoreOpen(sem_t **punSemaphore, 
                                 int8 *pcSemName, 
                                 int32 lOFlags, 
                                 int32 lModeFlags, 
@@ -256,21 +256,21 @@ bool possixHandlerSemaphoreOpen(sem_t **puSemaphore,
 {
     bool blReturn = false;
 
-    if((*puSemaphore == NULL) && 
+    if((*punSemaphore == NULL) && 
        (pcSemName != NULL) && 
        (lOFlags >= TRUE) && 
        (lModeFlags >= TRUE) && 
        (lInitialValue >= FALSE))
     {
-        *puSemaphore = sem_open(pcSemName, lOFlags, lModeFlags, lInitialValue);
-        if(*puSemaphore == SEM_FAILED)
+        *punSemaphore = sem_open(pcSemName, lOFlags, lModeFlags, lInitialValue);
+        if(*punSemaphore == SEM_FAILED)
         {
             sem_unlink(pcSemName);
-            *puSemaphore = sem_open(pcSemName, 
+            *punSemaphore = sem_open(pcSemName, 
                                    O_CREAT, 
                                    lModeFlags, 
                                    lInitialValue);
-            if(*puSemaphore != SEM_FAILED)
+            if(*punSemaphore != SEM_FAILED)
             {
                 blReturn = true;
             }
@@ -291,18 +291,18 @@ bool possixHandlerSemaphoreOpen(sem_t **puSemaphore,
 
 //***********************.possixHandlerSemaphoreClose.*************************
 //Purpose   : Close a Semaphore
-//Inputs    : puSemaphore - Address to the semaphore
+//Inputs    : punSemaphore - Address to the semaphore
 //Inputs    : pcSemName - Name of semaphore
 //Outputs   : None
 //Return    : true - Semaphore Closed, false - Semaphore close failed
 //Notes     : Close a Semaphore
 //*****************************************************************************
-bool possixHandlerSemaphoreClose(sem_t *puSemaphore, int8 *pcSemName)
+bool possixHandlerSemaphoreClose(sem_t *punSemaphore, int8 *pcSemName)
 {
     bool blReturn = false;
-    if((puSemaphore != NULL) && (pcSemName != NULL))
+    if((punSemaphore != NULL) && (pcSemName != NULL))
     {
-        if(sem_close(puSemaphore) == RETURN_OK)
+        if(sem_close(punSemaphore) == RETURN_OK)
         {
             if(sem_unlink(pcSemName) == RETURN_OK)
             {
@@ -321,18 +321,18 @@ bool possixHandlerSemaphoreClose(sem_t *puSemaphore, int8 *pcSemName)
 
 //************************.possixHandlerSemaphoreWait.*************************
 //Purpose   : Wait for semaphore 
-//Inputs    : puSemaphore - Address of Semaphore
+//Inputs    : punSemaphore - Address of Semaphore
 //Outputs   : None
 //Return    : true - got semaphore value decremented, false -  failed
 //Notes     : None
 //*****************************************************************************
-bool possixHandlerSemaphoreWait(sem_t *puSemaphore)
+bool possixHandlerSemaphoreWait(sem_t *punSemaphore)
 {
     bool blReturn = false;
 
-    if(puSemaphore != NULL)
+    if(punSemaphore != NULL)
     {
-        if(sem_wait(puSemaphore) == RETURN_OK)
+        if(sem_wait(punSemaphore) == RETURN_OK)
         {
             blReturn = true;
         }
@@ -352,18 +352,18 @@ bool possixHandlerSemaphoreWait(sem_t *puSemaphore)
 
 //************************.possixHandlerSemaphorePost.*************************
 //Purpose   : Post a semaphore 
-//Inputs    : puSemaphore - Address of Semaphore
+//Inputs    : punSemaphore - Address of Semaphore
 //Outputs   : None
 //Return    : true - semaphore posted value incremented, false -  failed
 //Notes     : None
 //*****************************************************************************
-bool possixHandlerSemaphorePost(sem_t *puSemaphore)
+bool possixHandlerSemaphorePost(sem_t *punSemaphore)
 {
     bool blReturn = false;
 
-    if(puSemaphore != NULL)
+    if(punSemaphore != NULL)
     {
-        if(sem_post(puSemaphore) == RETURN_OK)
+        if(sem_post(punSemaphore) == RETURN_OK)
         {
             blReturn = true;
         }
@@ -388,11 +388,11 @@ bool possixHandlerSemaphorePost(sem_t *puSemaphore)
 //Inputs    : lModeFlags - Permission set flags
 //Inputs    : lMaxMessages - Maximum number of messages
 //Inputs    : lMaxMessageLength - Maximum length of a message
-//Outputs   : plmMQueue - Descrpiter to message queue
+//Outputs   : plMQueue - Descrpiter to message queue
 //Return    : true - M Queue opened, false - M Queue open failed
 //Notes     : Open a M Queue and return its descripter
 //*****************************************************************************
-bool possixHandlerMQueueOpen(mqd_t *plmMQueue, 
+bool possixHandlerMQueueOpen(mqd_t *plMQueue, 
                              int8 *pcMQueueName, 
                              int32 lOFlags, 
                              int32 lModeFlags, 
@@ -401,7 +401,7 @@ bool possixHandlerMQueueOpen(mqd_t *plmMQueue,
 {
     bool blReturn = false;
 
-    if((plmMQueue != NULL) && 
+    if((plMQueue != NULL) && 
        (pcMQueueName !=NULL) && 
        (lOFlags >= TRUE) && 
        (lModeFlags >= TRUE) && 
@@ -414,19 +414,19 @@ bool possixHandlerMQueueOpen(mqd_t *plmMQueue,
                                 .mq_msgsize = lMaxMessageLength, 
                                 .mq_curmsgs = 0
                                 };
-        *plmMQueue = mq_open(pcMQueueName, lOFlags, lModeFlags, &stAttributes);
-        if(*plmMQueue != ERROR_VALUE)
+        *plMQueue = mq_open(pcMQueueName, lOFlags, lModeFlags, &stAttributes);
+        if(*plMQueue != ERROR_VALUE)
         {
             blReturn = true;
         }
         else
         {
             mq_unlink(pcMQueueName);
-            *plmMQueue = mq_open(pcMQueueName, 
+            *plMQueue = mq_open(pcMQueueName, 
                                 lOFlags, 
                                 lModeFlags, 
                                 &stAttributes);
-            if(*plmMQueue != ERROR_VALUE)
+            if(*plMQueue != ERROR_VALUE)
             {
                 blReturn = true;
             }
@@ -443,19 +443,19 @@ bool possixHandlerMQueueOpen(mqd_t *plmMQueue,
 
 //*************************.possixHandlerMQueueClose.**************************
 //Purpose   : Close a Message queue
-//Inputs    : plmMQueue - Pointer to MQueue descripter
+//Inputs    : plMQueue - Pointer to MQueue descripter
 //Inputs    : pcMQueueName - Name of message queue
 //Outputs   : None
 //Return    : true - MQueue Closed, false - MQueue Close failed
 //Notes     : Closes a Message queue
 //*****************************************************************************
-bool possixHandlerMQueueClose(mqd_t *plmMQueue, int8 *pcMQueueName)
+bool possixHandlerMQueueClose(mqd_t *plMQueue, int8 *pcMQueueName)
 {
     bool blReturn = false;
 
-    if(plmMQueue != NULL && pcMQueueName != NULL)
+    if(plMQueue != NULL && pcMQueueName != NULL)
     {
-        if(mq_close(*plmMQueue) == RETURN_OK)
+        if(mq_close(*plMQueue) == RETURN_OK)
         {
             if(mq_unlink(pcMQueueName) == RETURN_OK)
             {
@@ -474,7 +474,7 @@ bool possixHandlerMQueueClose(mqd_t *plmMQueue, int8 *pcMQueueName)
 
 //*************************.possixHandlerMQueueSend.***************************
 //Purpose   : Send message to a message queue
-//Inputs    : plmMQueue - Pointer to MQueue descripter
+//Inputs    : plMQueue - Pointer to MQueue descripter
 //Inputs    : pcMessageStrig - Message string
 //Inputs    : lMessageLength - Length of a single message
 //Inputs    : ulMessagePriority - Priority of a message
@@ -482,19 +482,19 @@ bool possixHandlerMQueueClose(mqd_t *plmMQueue, int8 *pcMQueueName)
 //Return    : true - Message Send to Queue, false - Message send failed
 //Notes     : None
 //*****************************************************************************
-bool possixHandlerMQueueSend(mqd_t *plmMQueue, 
+bool possixHandlerMQueueSend(mqd_t *plMQueue, 
                              int8 *pcMessageString, 
                              int32 lMessageLength, 
                              uint32 ulMessagePriority)
 {
     bool blReturn = false;
 
-    if((plmMQueue != NULL) && 
+    if((plMQueue != NULL) && 
         (pcMessageString != NULL) && 
         (lMessageLength != FALSE) &&
         (ulMessagePriority >= TRUE))
     {
-        if(mq_send(*plmMQueue, 
+        if(mq_send(*plMQueue, 
                 pcMessageString, 
                 lMessageLength, 
                 ulMessagePriority) == RETURN_OK)
@@ -517,25 +517,25 @@ bool possixHandlerMQueueSend(mqd_t *plmMQueue,
 
 //************************.possixHandlerMQueueReceive.*************************
 //Purpose   : Receive message from a message queue
-//Inputs    : plmMQueue - Pointer to MQueue descripter
+//Inputs    : plMQueue - Pointer to MQueue descripter
 //Inputs    : lMessageLength - Length of a single message
 //Inputs    : pulMessagePriority - pointer to Priority of message (can be NULL)
 //Outputs   : pcMessageString - Message string
 //Return    : true - Message received from Queue, false - Receive failed
 //Notes     : None
 //*****************************************************************************
-bool possixHandlerMQueueReceive(mqd_t *plmMQueue, 
+bool possixHandlerMQueueReceive(mqd_t *plMQueue, 
                                 int8 *pcMessageString, 
                                 int32 lMessageLength, 
                                 uint32 *pulMessagePriority)
 {
     bool blReturn = false;
 
-    if((plmMQueue != NULL) && 
+    if((plMQueue != NULL) && 
         (pcMessageString != NULL) && 
         (lMessageLength != FALSE))
     {
-        if(mq_receive(*plmMQueue, 
+        if(mq_receive(*plMQueue, 
                       pcMessageString, 
                       lMessageLength, 
                       pulMessagePriority) == lMessageLength)
@@ -611,19 +611,19 @@ bool possixHandlerConditionalVarDelete(pthread_cond_t *puConditionalVar)
 //**********************.possixHandlerConditionalVarWait.**********************
 //Purpose   : Enter wait state untill condition met
 //Inputs    : puConditionalVar - Address of conditional variable
-//Inputs    : puMutex - Mutex which blocks the variable
+//Inputs    : punMutex - Mutex which blocks the variable
 //Outputs   : None
 //Return    : true - Thread enter wait mode, false - failed
 //Notes     : None
 //*****************************************************************************
 bool possixHandlerConditionalVarWait(pthread_cond_t *puConditionalVar, 
-                                     pthread_mutex_t *puMutex)
+                                     pthread_mutex_t *punMutex)
 {
     bool blReturn = false;
 
-    if(puConditionalVar != NULL && puMutex != NULL)
+    if(puConditionalVar != NULL && punMutex != NULL)
     {
-        if(pthread_cond_wait(puConditionalVar, puMutex) == RETURN_OK)
+        if(pthread_cond_wait(puConditionalVar, punMutex) == RETURN_OK)
         {
             blReturn = true;
         }

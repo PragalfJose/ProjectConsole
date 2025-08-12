@@ -34,30 +34,30 @@ bool possixHandlerThreadCreate(pthread_t *pulThread,
                               void *pvarguments);
 bool possixHandlerThreadJoin(pthread_t pulThread);
 bool possixHandlerThreadCancel(pthread_t pulThread);
-bool possixHandlerMutexCreate(pthread_mutex_t *puMutex);
-bool possixHandlerMutexDelete(pthread_mutex_t *puMutex);
-bool possixHandlerMutexLock(pthread_mutex_t *puMutex);
-bool possixHandlerMutexUnlock(pthread_mutex_t *puMutex);
-bool possixHandlerSemaphoreOpen(sem_t **puSemaphore, 
+bool possixHandlerMutexCreate(pthread_mutex_t *punMutex);
+bool possixHandlerMutexDelete(pthread_mutex_t *punMutex);
+bool possixHandlerMutexLock(pthread_mutex_t *punMutex);
+bool possixHandlerMutexUnlock(pthread_mutex_t *punMutex);
+bool possixHandlerSemaphoreOpen(sem_t **punSemaphore, 
                                 int8 *pcSemName, 
                                 int32 lOFlags, 
                                 int32 lModeFlags, 
                                 int32 lInitialValue);
-bool possixHandlerSemaphoreClose(sem_t *puSemaphore, int8 *pcSemName);
-bool possixHandlerSemaphoreWait(sem_t *puSemaphore);
-bool possixHandlerSemaphorePost(sem_t *puSemaphore);
-bool possixHandlerMQueueOpen(mqd_t *plmMQueue, 
+bool possixHandlerSemaphoreClose(sem_t *punSemaphore, int8 *pcSemName);
+bool possixHandlerSemaphoreWait(sem_t *punSemaphore);
+bool possixHandlerSemaphorePost(sem_t *punSemaphore);
+bool possixHandlerMQueueOpen(mqd_t *plMQueue, 
                              int8 *pcMQueueName, 
                              int32 lOFlags, 
                              int32 lModeFlags, 
                              int32 lMaxMessages, 
                              int32 lMaxMessageLength);
-bool possixHandlerMQueueClose(mqd_t *plmMQueue, int8 *pcMQueueName);
-bool possixHandlerMQueueSend(mqd_t *plmMQueue, 
+bool possixHandlerMQueueClose(mqd_t *plMQueue, int8 *pcMQueueName);
+bool possixHandlerMQueueSend(mqd_t *plMQueue, 
                             int8 *pcMessageString, 
                             int32 lMessageLength, 
                             uint32 ulMessagePriority);
-bool possixHandlerMQueueReceive(mqd_t *plmMQueue, 
+bool possixHandlerMQueueReceive(mqd_t *plMQueue, 
                                 int8 *pcMessageString, 
                                 int32 lMessageLength, 
                                 uint32 *pulMessagePriority);
