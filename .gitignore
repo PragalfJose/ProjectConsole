@@ -12,3 +12,4 @@ Debug
 build
 Core
 Report
+vgcore.*

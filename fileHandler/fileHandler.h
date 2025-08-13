@@ -22,7 +22,7 @@
 #define STRING_LEN              64
 #define MAX_STR_LEN             256
 #define FILE_NAME               "TestDoc.txt"
-#define DATA_SIZE               36
+#define DATA_SIZE               21
 
 //***************************** Global Constants ******************************
 #define OPEN_WR                 "w"

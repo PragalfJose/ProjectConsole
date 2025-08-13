@@ -20,12 +20,28 @@
 #include "possixOperation.h"
 
 //******************************* Global Types ********************************
+typedef struct
+{
+    uint8 pucData[5];
+    uint8 pucUID[5];
+    uint8 ucCommand;
+    uint8 pucRESERVED[53];
+}REQUEST;
+typedef struct
+{
+    uint8 pucData[5];
+    uint8 pucUID[5];
+    uint8 ucCommand;
+    uint8 ucState;
+    uint8 pucRESERVED[52];
+}ACKNOWLEDGE;
+
 
 //***************************** Global Constants ******************************
 
 //***************************** Global Variables ******************************
-static uint8 ucBreakFlag = FALSE;
 static uint32 ulDataCount = 0;
+static uint8 ucBreakFlag = FALSE;
 
 //*******************************.PollerThread.********************************
 //Purpose   : Detect GPIO input state change
@@ -38,46 +54,56 @@ static uint32 ulDataCount = 0;
 void* PollerThread()
 {
     uint8 ucInputValue = 0;
-    int8 pcMessageString[STRING_LEN] = {0};
-    int8 pcReadData[STRING_LEN] = {0};
+    static uint32 ulKeyPressCount = 0;
+    REQUEST stInData = {0};
+    ACKNOWLEDGE stAckData = {0};
 
-    while(1)
+    while(true)
     {
         #ifdef _RPIBOARD
         if(appLedRpiCheckGpioPin(GPIO_SWITCH) == true)
         {
             ucInputValue = 'T';
-            possixOperationInputMessageReceive(pcReadData);
-            memset(pcMessageString, 0, sizeof(pcMessageString));
-                    memset(pcMessageString, 0, sizeof(pcMessageString));
-            sprintf((char*)pcMessageString,
-                    "Key Pressed in  Poller : %c\r\n",
-                    ucInputValue);
-            possixOperationInputMessageSend(pcMessageString);
+            memset(&stAckData, 0, sizeof(ACKNOWLEDGE));
+            possixOperationInputMessageReceive(&stAckData);
+            if(stAckData.ucState == 0X01)
+            {
+                printf("[Poller] Invalid data in Transfer\r\n");
+            }
+            memset(&stInData, 0, sizeof(REQUEST));
+            ulKeyPressCount++;
+            sprintf((char*)stInData.pucUID, "%04u", ulKeyPressCount);
+            sprintf((char*)stInData.pucData, "-%c--", ucInputValue);
+            stInData.ucCommand = 0X01;
+            possixOperationInputMessageSend(&stInData);
             possixOperationConditionalMutexLock();
             possixOperationConditionSetValue();
             possixOperationConditionalVarBroadcast();
             possixOperationConditionalMutexUnlock();
-            possixOperationPollerSemaphoreWait();
         }
         #else
         possixOperationPollerSemaphoreWait();
-        printf("Enter a number between 1 to 10 : ");
-        scanf("%[^\n]c", &ucInputValue);
+        printf("[Poller] Enter a number between 1 to 10 : ");
+        scanf("%c", &ucInputValue);
         getchar();
         if(ucInputValue < '0' || ucInputValue > '9')
         {
+            printf("[Poller] Exit from loop\r\n");
             ucBreakFlag = TRUE;
-            printf("Exit from loop\r\n");
             break;
         }
-        possixOperationInputMessageReceive(pcReadData);
-        memset(pcMessageString, 0, sizeof(pcMessageString));
-                memset(pcMessageString, 0, sizeof(pcMessageString));
-        sprintf((char*)pcMessageString,
-                "Key Pressed in  Poller : %c\r\n",
-                ucInputValue);
-        possixOperationInputMessageSend(pcMessageString);
+        memset(&stAckData, 0, sizeof(ACKNOWLEDGE));
+        possixOperationInputMessageReceive(&stAckData);
+        if(stAckData.ucState == 0X01)
+        {
+            printf("[Poller] Invalid data in Transfer\r\n");
+        }
+        memset(&stInData, 0, sizeof(REQUEST));
+        ulKeyPressCount++;
+        sprintf((char*)stInData.pucUID, "%04u", ulKeyPressCount);
+        sprintf((char*)stInData.pucData, "-%c--", ucInputValue);
+        stInData.ucCommand = 0X01;
+        possixOperationInputMessageSend(&stInData);
         possixOperationConditionalMutexLock();
         possixOperationConditionSetValue();
         possixOperationConditionalVarBroadcast();
@@ -99,8 +125,8 @@ void* PollerThread()
 //*****************************************************************************
 void* TransportThread()
 {
-    int8 pcReadData[STRING_LEN] = {0};
-    int8 pcMessageString[MAX_STR_LEN] = {0};
+    REQUEST stReadData = {0};
+    ACKNOWLEDGE stAckData = {0};
 
     while(TRUE)
     {
@@ -111,18 +137,40 @@ void* TransportThread()
         }
         possixOperationConditionClearValue();
         possixOperationConditionalMutexUnlock();
-        memset(pcReadData, 0, sizeof(pcReadData));
-        possixOperationInputMessageReceive(pcReadData);
-        if(strstr((char*)pcReadData, "Key Pressed"))
+        memset(&stReadData, 0, sizeof(REQUEST));
+        possixOperationInputMessageReceive(&stReadData);
+        if((stReadData.ucCommand == 0X01) && 
+           (strlen((char*)stReadData.pucUID)) &&
+           (strlen((char*)stReadData.pucData)))
         {
-            memset(pcMessageString, 0, sizeof(pcMessageString));
-            sprintf((char*)pcMessageString, "Key Press Acknowledged\r\n");
-            possixOperationInputMessageSend(pcMessageString);
-            memset(pcMessageString, 0, sizeof(pcMessageString));
-            possixOperationOutputMessageReceive(pcMessageString);
-                        memset(pcMessageString, 0, sizeof(pcMessageString));
-            sprintf((char*)pcMessageString, "%s\r\n",pcReadData);
-            possixOperationOutputMessageSend(pcMessageString);
+            printf("[Transfer] UID : %s  DTA :%s  CMD : 0X%02x\r\n", 
+                   stReadData.pucUID, 
+                   stReadData.pucData, 
+                   stReadData.ucCommand);
+            stReadData.ucCommand = 0X02;
+            memset(&stAckData, 0, sizeof(ACKNOWLEDGE));
+            strncpy((char*)stAckData.pucUID, (char*)stReadData.pucUID, 4);
+            strncpy((char*)stAckData.pucData, (char*)stReadData.pucData, 4);
+            stAckData.ucCommand = 0X00;
+            stAckData.ucState = 0x00;
+            possixOperationInputMessageSend(&stAckData);
+            memset(&stAckData, 0, sizeof(ACKNOWLEDGE));
+            possixOperationOutputMessageReceive(&stAckData);
+            printf("[Transfer] UID : %s  DTA :%s  CMD : 0X%02x  ST : 0X%02x", 
+                   stAckData.pucUID, 
+                   stAckData.pucData, 
+                   stAckData.ucCommand, 
+                   stAckData.ucState);
+            printf("\r\n");
+            possixOperationOutputMessageSend(&stReadData);
+        }
+        else
+        {
+            printf("[Transfer] Invalid Data from Poller\r\n");
+            memset(&stAckData, 0, sizeof(ACKNOWLEDGE));
+            stAckData.ucCommand = 0X00;
+            stAckData.ucState = 0x01;
+            possixOperationInputMessageSend(&stAckData);
         }
         possixOperationLoggerSemaphorePost();
     }
@@ -142,32 +190,51 @@ void* TransportThread()
 void* LoggerThread()
 {
     int8 pcMessageString[MAX_STR_LEN] = {0};
-    int8 pcReadData[STRING_LEN] = {0};
+    REQUEST stReadData = {0};
+    ACKNOWLEDGE stAckData = {0};
 
     while(TRUE)
     {
         possixOperationLoggerSemaphoreWait();
-        memset(pcReadData, 0, sizeof(pcReadData));
-        possixOperationOutputMessageReceive(pcReadData);
-        printf("%s", pcReadData);
-        if(strstr((char*)pcReadData, "Key Pressed"))
+        memset(&stReadData, 0, sizeof(REQUEST));
+        possixOperationOutputMessageReceive(&stReadData);
+        if((stReadData.ucCommand == 0X02) && 
+           (strlen((char*)stReadData.pucData)) && 
+           (strlen((char*)stReadData.pucUID)))
         {
+            printf("[Logger] UID : %s  DTA : %s  CMD : 0X%02x\r\n", 
+                   stReadData.pucUID, 
+                   stReadData.pucData, 
+                   stReadData.ucCommand);
             #ifdef _RP_BOARD
             appLedStateToggle(GPIO_LED);
             #else
             memset(pcMessageString, 0, sizeof(pcMessageString));
             sprintf((char*)pcMessageString,
-                    "%04d  : %s",
-                    ulDataCount, pcReadData);
+                    "%s  : %s : 0X%02x\r\n", 
+                    stReadData.pucUID, 
+                    stReadData.pucData, 
+                    stReadData.ucCommand);
             ulDataCount++;
             fileHandlerFileWrite(FILE_NAME,
                                  pcMessageString,
                                  DATA_SIZE,
                                  OPEN_APND);
             #endif // _RPIBOARD
-            memset(pcReadData, 0, sizeof(pcReadData));
-            sprintf((char*)pcReadData, "Input Acknowledged\r\n");
-                        possixOperationOutputMessageSend(pcReadData);
+            memset(&stAckData, 0, sizeof(ACKNOWLEDGE));
+            strncpy((char*)stAckData.pucUID, (char*)stReadData.pucUID, 4);
+            strncpy((char*)stAckData.pucData, (char*)stReadData.pucData, 4);
+            stAckData.ucCommand = 0X00;
+            stAckData.ucState = 0x00;
+            possixOperationOutputMessageSend(&stAckData);
+        }
+        else
+        {
+            printf("[Logger] Invalid Data from Transfer\r\n");
+            memset(&stAckData, 0, sizeof(ACKNOWLEDGE));
+            stAckData.ucCommand = 0X00;
+            stAckData.ucState = 0x01;
+            possixOperationOutputMessageSend(&stAckData);
         }
         possixOperationPollerSemaphorePost();
     }
@@ -223,10 +290,10 @@ int main()
 
     while(true)
     {
-        appTimerProcessTime();
-        appTimerDelay(1000);
+        // appTimerProcessTime();
+        // appTimerDelay(1000);
         #ifndef _RPIBOARD
-        appLedStateToggle(LED_PIN);
+        // appLedStateToggle(LED_PIN);
         #endif /*_RPIBOARD*/
         if(ucBreakFlag == TRUE)
         {
@@ -238,11 +305,17 @@ int main()
     appLedRpiReleaseChip();
     #endif /*_RPIBOARD*/
     possixHandlerThreadJoin(ulPollerThread);
-    possixHandlerThreadCancel(ulTransportThread);
-    possixHandlerThreadJoin(ulTransportThread);
+    printf("In here1\r\n");
     possixHandlerThreadCancel(ulLoggerThread);
+    printf("In here2\r\n");
     possixHandlerThreadJoin(ulLoggerThread);
+    printf("In here6\r\n");
+    possixHandlerThreadCancel(ulTransportThread);
+    printf("In here7\r\n");
+    possixHandlerThreadJoin(ulTransportThread);
+    printf("In here3\r\n");
     possixOperationSystemDeinit();
+    printf("In here4\r\n");
 
     return 0;
     
